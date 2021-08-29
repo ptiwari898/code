@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Web Developer</title>
+    <meta name="description" content="Best web Developer ">
+    <meta charset="utf-8">
+    <meta name="robots" content="index,follow">
+    <link rel="icon" href="img/home_icon-icons.com_73532.ico">
+    <meta name="viewport" content="width=device-width, initial-scale=1"> 
+</head>
+<body>
+    <h1>Hello</h1>
+    <p>hello</p>
+    <img 
+    width="500" 
+    height="500" 
+    src="img/pexels-ben-mack-5326953.jpg">
+
+    <video height="500" width="1000">
+        <source src="./video.mp4" type="video/mp4" />
+    </video>
+    //-----------------------------
+     <h1> Forms </h1>
+    <form >
+        <label name="user" for="user">Username</label>
+        <input 
+        maxlength="10" 
+        minlength="6" 
+        type="text" 
+        id="user" 
+        placeholder="Username"
+        required
+        />
+        <label>Email</label>
+        <input 
+        required
+        placeholder="xxxxx@xxx.xx"
+        name="email" 
+        type="email" />
+
+        <select name="product" id="product">
+            <option value=""></option>
+            <option value="macbook">Macbook</option>
+            <option value="iphone">Iphone 11</option>
+        </select>
+        <input type="radio" name="product" value="macbook" >
+        <input type="radio" name="product" value="iphone" >
+        <input type="radio" name="product" value="oneplus">
+        <input type="radio" name="product" value="samsung" >
+        <textarea name="message" id="message" cols="30" rows="10"></textarea>
+        <button type="submit">Submit</button>
+        /------------------------------
+          <h1>  Lists</h1>
+   <ul>
+       <li>Home</li>
+   </ul>
+   <ol>
+       <li>home</li>
+   </ol>
+    </form>
+    /------------------------------------
+     <table>
+         <tr>
+             <th>FirstName</th>
+             <th>LastName</th>
+             <th>Age</th>
+         </tr>
+         <tr>
+             <td>pawan</td>
+             <td>tiwari</td>
+             <td>26</td>
+         </tr>
+     </table>
+
+</body>
+</html>
