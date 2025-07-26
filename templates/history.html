@@ -1,0 +1,459 @@
+{% extends "base.html" %}
+
+{% block title %}Detection History - Face Mask Detection{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <!-- Header -->
+        <div class="text-center text-white mb-4">
+            <h1 class="display-4 fw-bold mb-3">
+                <i class="fas fa-history me-3"></i>
+                Detection History
+            </h1>
+            <p class="lead">View all previous mask detection results</p>
+        </div>
+
+        <!-- Statistics Card -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="fas fa-chart-pie me-2"></i>
+                    Summary Statistics
+                </h5>
+                
+                <div class="row text-center">
+                    <div class="col-md-3">
+                        <div class="stat-item">
+                            <h3 class="text-primary" id="totalDetections">{{ logs|length }}</h3>
+                            <p class="text-muted">Total Detections</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-item">
+                            <h3 class="text-info" id="totalFaces">0</h3>
+                            <p class="text-muted">Total Faces</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-item">
+                            <h3 class="text-success" id="totalMasks">0</h3>
+                            <p class="text-muted">Masks Detected</p>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="stat-item">
+                            <h3 class="text-danger" id="totalNoMasks">0</h3>
+                            <p class="text-muted">No Masks</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter and Search -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-md-6">
+                        <div class="input-group">
+                            <span class="input-group-text">
+                                <i class="fas fa-search"></i>
+                            </span>
+                            <input type="text" class="form-control" id="searchInput" 
+                                   placeholder="Search by filename...">
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <select class="form-select" id="filterSelect">
+                            <option value="all">All Results</option>
+                            <option value="with-masks">With Masks</option>
+                            <option value="without-masks">Without Masks</option>
+                            <option value="mixed">Mixed Results</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <button class="btn btn-outline-danger" id="clearHistory">
+                            <i class="fas fa-trash me-2"></i>
+                            Clear History
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- History List -->
+        <div id="historyContainer">
+            {% if logs %}
+                {% for log in logs|reverse %}
+                <div class="card mb-3 history-item" 
+                     data-filename="{{ log.filename }}" 
+                     data-mask-count="{{ log.detections|selectattr('label', 'equalto', 'Mask')|list|length }}"
+                     data-no-mask-count="{{ log.detections|selectattr('label', 'equalto', 'No Mask')|list|length }}">
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div class="d-flex align-items-center mb-2">
+                                    <h5 class="card-title mb-0 me-3">
+                                        <i class="fas fa-file-image me-2"></i>
+                                        {{ log.filename }}
+                                    </h5>
+                                    <small class="text-muted">
+                                        <i class="fas fa-clock me-1"></i>
+                                        {{ log.timestamp|replace('T', ' ')|replace('Z', '') }}
+                                    </small>
+                                </div>
+                                
+                                <div class="detection-summary mb-2">
+                                    {% set mask_count = log.detections|selectattr('label', 'equalto', 'Mask')|list|length %}
+                                    {% set no_mask_count = log.detections|selectattr('label', 'equalto', 'No Mask')|list|length %}
+                                    {% set total_faces = mask_count + no_mask_count %}
+                                    
+                                    <span class="badge bg-info me-2">
+                                        <i class="fas fa-users me-1"></i>
+                                        {{ total_faces }} faces
+                                    </span>
+                                    
+                                    {% if mask_count > 0 %}
+                                    <span class="badge bg-success me-2">
+                                        <i class="fas fa-check me-1"></i>
+                                        {{ mask_count }} masks
+                                    </span>
+                                    {% endif %}
+                                    
+                                    {% if no_mask_count > 0 %}
+                                    <span class="badge bg-danger me-2">
+                                        <i class="fas fa-times me-1"></i>
+                                        {{ no_mask_count }} no masks
+                                    </span>
+                                    {% endif %}
+                                </div>
+                                
+                                <!-- Detection Details -->
+                                {% if log.detections %}
+                                <div class="detection-details">
+                                    <button class="btn btn-sm btn-outline-primary toggle-details" 
+                                            data-bs-toggle="collapse" 
+                                            data-bs-target="#details-{{ loop.index }}">
+                                        <i class="fas fa-eye me-1"></i>
+                                        Show Details
+                                    </button>
+                                    
+                                    <div class="collapse mt-2" id="details-{{ loop.index }}">
+                                        <div class="table-responsive">
+                                            <table class="table table-sm">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Face</th>
+                                                        <th>Detection</th>
+                                                        <th>Confidence</th>
+                                                        <th>Position</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {% for detection in log.detections %}
+                                                    <tr>
+                                                        <td>{{ loop.index }}</td>
+                                                        <td>
+                                                            <span class="badge {% if detection.label == 'Mask' %}bg-success{% else %}bg-danger{% endif %}">
+                                                                {{ detection.label }}
+                                                            </span>
+                                                        </td>
+                                                        <td>{{ "%.1f"|format(detection.confidence * 100) }}%</td>
+                                                        <td>
+                                                            <small class="text-muted">
+                                                                ({{ detection.box[0] }}, {{ detection.box[1] }}) - 
+                                                                ({{ detection.box[2] }}, {{ detection.box[3] }})
+                                                            </small>
+                                                        </td>
+                                                    </tr>
+                                                    {% endfor %}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                                {% endif %}
+                            </div>
+                            
+                            <div class="col-md-4 text-end">
+                                <div class="btn-group-vertical" role="group">
+                                    <button class="btn btn-sm btn-outline-info view-result" 
+                                            data-filename="{{ log.filename }}">
+                                        <i class="fas fa-eye me-1"></i>
+                                        View Result
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-success export-result" 
+                                            data-log="{{ log|tojson }}">
+                                        <i class="fas fa-download me-1"></i>
+                                        Export
+                                    </button>
+                                    <button class="btn btn-sm btn-outline-danger delete-result" 
+                                            data-filename="{{ log.filename }}">
+                                        <i class="fas fa-trash me-1"></i>
+                                        Delete
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="card">
+                    <div class="card-body text-center py-5">
+                        <i class="fas fa-history fa-5x text-muted mb-3"></i>
+                        <h4 class="text-muted">No Detection History</h4>
+                        <p class="text-muted">Upload some images to see detection results here</p>
+                        <a href="{{ url_for('index') }}" class="btn btn-primary">
+                            <i class="fas fa-upload me-2"></i>
+                            Upload Image
+                        </a>
+                    </div>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- No Results Message -->
+        <div id="noResults" class="card" style="display: none;">
+            <div class="card-body text-center py-5">
+                <i class="fas fa-search fa-3x text-muted mb-3"></i>
+                <h4 class="text-muted">No Results Found</h4>
+                <p class="text-muted">Try adjusting your search or filter criteria</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal for viewing results -->
+<div class="modal fade" id="resultModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Detection Result</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body text-center">
+                <img id="resultImage" src="" class="img-fluid rounded" alt="Result">
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    const searchInput = $('#searchInput');
+    const filterSelect = $('#filterSelect');
+    const historyItems = $('.history-item');
+    const noResults = $('#noResults');
+
+    // Calculate statistics
+    calculateStatistics();
+
+    // Search functionality
+    searchInput.on('input', function() {
+        filterResults();
+    });
+
+    // Filter functionality
+    filterSelect.on('change', function() {
+        filterResults();
+    });
+
+    // Toggle details buttons
+    $('.toggle-details').on('click', function() {
+        const icon = $(this).find('i');
+        const text = $(this).find('span');
+        
+        setTimeout(() => {
+            const isCollapsed = $($(this).data('bs-target')).hasClass('show');
+            if (isCollapsed) {
+                icon.removeClass('fa-eye').addClass('fa-eye-slash');
+                $(this).html('<i class="fas fa-eye-slash me-1"></i>Hide Details');
+            } else {
+                icon.removeClass('fa-eye-slash').addClass('fa-eye');
+                $(this).html('<i class="fas fa-eye me-1"></i>Show Details');
+            }
+        }, 300);
+    });
+
+    // View result buttons
+    $('.view-result').on('click', function() {
+        const filename = $(this).data('filename');
+        const resultUrl = `/static/results/result_${filename}`;
+        
+        $('#resultImage').attr('src', resultUrl);
+        $('#resultModal').modal('show');
+    });
+
+    // Export result buttons
+    $('.export-result').on('click', function() {
+        const logData = $(this).data('log');
+        const filename = logData.filename;
+        const exportData = {
+            filename: filename,
+            timestamp: logData.timestamp,
+            summary: {
+                total_faces: logData.detections.length,
+                masks_detected: logData.detections.filter(d => d.label === 'Mask').length,
+                no_masks_detected: logData.detections.filter(d => d.label === 'No Mask').length
+            },
+            detections: logData.detections
+        };
+        
+        const dataStr = JSON.stringify(exportData, null, 2);
+        const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr);
+        
+        const exportName = `mask_detection_${filename.split('.')[0]}.json`;
+        
+        const linkElement = document.createElement('a');
+        linkElement.setAttribute('href', dataUri);
+        linkElement.setAttribute('download', exportName);
+        linkElement.click();
+        
+        showToast('Detection data exported successfully!', 'success');
+    });
+
+    // Delete result buttons
+    $('.delete-result').on('click', function() {
+        const filename = $(this).data('filename');
+        const historyItem = $(this).closest('.history-item');
+        
+        if (confirm(`Are you sure you want to delete the detection result for "${filename}"?`)) {
+            historyItem.fadeOut(300, function() {
+                $(this).remove();
+                calculateStatistics();
+                filterResults();
+            });
+            
+            showToast('Detection result deleted successfully!', 'success');
+        }
+    });
+
+    // Clear history button
+    $('#clearHistory').on('click', function() {
+        if (confirm('Are you sure you want to clear all detection history? This action cannot be undone.')) {
+            historyItems.fadeOut(300, function() {
+                $(this).remove();
+                calculateStatistics();
+                showEmptyState();
+            });
+            
+            showToast('Detection history cleared successfully!', 'success');
+        }
+    });
+
+    function filterResults() {
+        const searchTerm = searchInput.val().toLowerCase();
+        const filterValue = filterSelect.val();
+        let visibleCount = 0;
+
+        historyItems.each(function() {
+            const filename = $(this).data('filename').toLowerCase();
+            const maskCount = parseInt($(this).data('mask-count'));
+            const noMaskCount = parseInt($(this).data('no-mask-count'));
+            
+            let shouldShow = true;
+
+            // Apply search filter
+            if (searchTerm && !filename.includes(searchTerm)) {
+                shouldShow = false;
+            }
+
+            // Apply category filter
+            if (shouldShow && filterValue !== 'all') {
+                switch (filterValue) {
+                    case 'with-masks':
+                        shouldShow = maskCount > 0;
+                        break;
+                    case 'without-masks':
+                        shouldShow = maskCount === 0 && noMaskCount > 0;
+                        break;
+                    case 'mixed':
+                        shouldShow = maskCount > 0 && noMaskCount > 0;
+                        break;
+                }
+            }
+
+            if (shouldShow) {
+                $(this).show();
+                visibleCount++;
+            } else {
+                $(this).hide();
+            }
+        });
+
+        // Show/hide no results message
+        if (visibleCount === 0 && historyItems.length > 0) {
+            noResults.show();
+        } else {
+            noResults.hide();
+        }
+    }
+
+    function calculateStatistics() {
+        let totalFaces = 0;
+        let totalMasks = 0;
+        let totalNoMasks = 0;
+
+        historyItems.each(function() {
+            totalMasks += parseInt($(this).data('mask-count'));
+            totalNoMasks += parseInt($(this).data('no-mask-count'));
+        });
+
+        totalFaces = totalMasks + totalNoMasks;
+
+        $('#totalFaces').text(totalFaces);
+        $('#totalMasks').text(totalMasks);
+        $('#totalNoMasks').text(totalNoMasks);
+        $('#totalDetections').text(historyItems.length);
+    }
+
+    function showEmptyState() {
+        $('#historyContainer').html(`
+            <div class="card">
+                <div class="card-body text-center py-5">
+                    <i class="fas fa-history fa-5x text-muted mb-3"></i>
+                    <h4 class="text-muted">No Detection History</h4>
+                    <p class="text-muted">Upload some images to see detection results here</p>
+                    <a href="{{ url_for('index') }}" class="btn btn-primary">
+                        <i class="fas fa-upload me-2"></i>
+                        Upload Image
+                    </a>
+                </div>
+            </div>
+        `);
+    }
+
+    function showToast(message, type = 'info') {
+        const toastHtml = `
+            <div class="toast align-items-center text-white bg-${type} border-0" role="alert">
+                <div class="d-flex">
+                    <div class="toast-body">
+                        ${message}
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" 
+                            data-bs-dismiss="toast"></button>
+                </div>
+            </div>
+        `;
+        
+        if (!$('#toastContainer').length) {
+            $('body').append('<div id="toastContainer" class="toast-container position-fixed top-0 end-0 p-3"></div>');
+        }
+        
+        const toastElement = $(toastHtml);
+        $('#toastContainer').append(toastElement);
+        
+        const toast = new bootstrap.Toast(toastElement[0]);
+        toast.show();
+        
+        toastElement.on('hidden.bs.toast', function() {
+            $(this).remove();
+        });
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,369 @@
+{% extends "base.html" %}
+
+{% block title %}Webcam Detection - Face Mask Detection{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-10">
+        <!-- Header -->
+        <div class="text-center text-white mb-4">
+            <h1 class="display-4 fw-bold mb-3">
+                <i class="fas fa-video me-3"></i>
+                Real-time Detection
+            </h1>
+            <p class="lead">Live webcam feed with mask detection</p>
+        </div>
+
+        <!-- Webcam Card -->
+        <div class="card">
+            <div class="card-body">
+                <div class="webcam-container">
+                    <!-- Control Buttons -->
+                    <div class="mb-4">
+                        <button class="btn btn-success me-3" id="startBtn">
+                            <i class="fas fa-play me-2"></i>
+                            Start Detection
+                        </button>
+                        <button class="btn btn-danger me-3" id="stopBtn" disabled>
+                            <i class="fas fa-stop me-2"></i>
+                            Stop Detection
+                        </button>
+                        <button class="btn btn-info" id="captureBtn" disabled>
+                            <i class="fas fa-camera me-2"></i>
+                            Capture Frame
+                        </button>
+                    </div>
+
+                    <!-- Status -->
+                    <div class="mb-3">
+                        <span class="badge bg-secondary" id="statusBadge">
+                            <i class="fas fa-circle me-1"></i>
+                            Stopped
+                        </span>
+                    </div>
+
+                    <!-- Webcam Feed -->
+                    <div id="webcamContainer" style="display: none;">
+                        <img id="webcamFeed" src="{{ url_for('video_feed') }}" 
+                             class="webcam-feed" alt="Webcam Feed">
+                    </div>
+
+                    <!-- Placeholder -->
+                    <div id="webcamPlaceholder" class="text-center py-5">
+                        <i class="fas fa-video-slash fa-5x text-muted mb-3"></i>
+                        <h4 class="text-muted">Webcam feed will appear here</h4>
+                        <p class="text-muted">Click "Start Detection" to begin</p>
+                    </div>
+                </div>
+
+                <!-- Live Statistics -->
+                <div class="row mt-4" id="liveStats" style="display: none;">
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <h5><i class="fas fa-clock me-2"></i>Duration</h5>
+                            <span class="badge bg-info fs-6" id="duration">00:00</span>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <h5><i class="fas fa-users me-2"></i>Faces</h5>
+                            <span class="badge bg-primary fs-6" id="faceCount">0</span>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <h5><i class="fas fa-check me-2"></i>Masks</h5>
+                            <span class="badge bg-success fs-6" id="maskCount">0</span>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="text-center">
+                            <h5><i class="fas fa-times me-2"></i>No Masks</h5>
+                            <span class="badge bg-danger fs-6" id="noMaskCount">0</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Instructions Card -->
+        <div class="card mt-4">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="fas fa-info-circle me-2"></i>
+                    Instructions
+                </h5>
+                <ul class="list-unstyled">
+                    <li class="mb-2">
+                        <i class="fas fa-check text-success me-2"></i>
+                        Ensure good lighting for better detection accuracy
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-check text-success me-2"></i>
+                        Face the camera directly for optimal results
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-check text-success me-2"></i>
+                        Green boxes indicate mask detected, red boxes indicate no mask
+                    </li>
+                    <li class="mb-2">
+                        <i class="fas fa-check text-success me-2"></i>
+                        Use the capture button to save interesting frames
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Captured Frames -->
+        <div class="card mt-4" id="capturedFrames" style="display: none;">
+            <div class="card-body">
+                <h5 class="card-title">
+                    <i class="fas fa-images me-2"></i>
+                    Captured Frames
+                </h5>
+                <div id="capturedFramesContainer" class="row">
+                    <!-- Captured frames will appear here -->
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+$(document).ready(function() {
+    let isDetecting = false;
+    let startTime = null;
+    let durationInterval = null;
+    let captureCount = 0;
+
+    const startBtn = $('#startBtn');
+    const stopBtn = $('#stopBtn');
+    const captureBtn = $('#captureBtn');
+    const statusBadge = $('#statusBadge');
+    const webcamContainer = $('#webcamContainer');
+    const webcamPlaceholder = $('#webcamPlaceholder');
+    const webcamFeed = $('#webcamFeed');
+    const liveStats = $('#liveStats');
+    const capturedFrames = $('#capturedFrames');
+
+    // Start detection
+    startBtn.on('click', function() {
+        startDetection();
+    });
+
+    // Stop detection
+    stopBtn.on('click', function() {
+        stopDetection();
+    });
+
+    // Capture frame
+    captureBtn.on('click', function() {
+        captureFrame();
+    });
+
+    function startDetection() {
+        if (isDetecting) return;
+
+        isDetecting = true;
+        startTime = new Date();
+        
+        // Update UI
+        startBtn.prop('disabled', true);
+        stopBtn.prop('disabled', false);
+        captureBtn.prop('disabled', false);
+        
+        statusBadge.removeClass('bg-secondary bg-danger')
+                   .addClass('bg-success')
+                   .html('<i class="fas fa-circle me-1"></i> Active');
+        
+        webcamPlaceholder.hide();
+        webcamContainer.show();
+        liveStats.show();
+
+        // Start duration counter
+        durationInterval = setInterval(updateDuration, 1000);
+
+        // Refresh webcam feed
+        refreshWebcamFeed();
+        
+        console.log('Detection started');
+    }
+
+    function stopDetection() {
+        if (!isDetecting) return;
+
+        isDetecting = false;
+        
+        // Update UI
+        startBtn.prop('disabled', false);
+        stopBtn.prop('disabled', true);
+        captureBtn.prop('disabled', true);
+        
+        statusBadge.removeClass('bg-success bg-danger')
+                   .addClass('bg-secondary')
+                   .html('<i class="fas fa-circle me-1"></i> Stopped');
+        
+        webcamContainer.hide();
+        webcamPlaceholder.show();
+        liveStats.hide();
+
+        // Clear duration counter
+        if (durationInterval) {
+            clearInterval(durationInterval);
+            durationInterval = null;
+        }
+
+        // Reset stats
+        $('#duration').text('00:00');
+        $('#faceCount').text('0');
+        $('#maskCount').text('0');
+        $('#noMaskCount').text('0');
+        
+        console.log('Detection stopped');
+    }
+
+    function refreshWebcamFeed() {
+        if (!isDetecting) return;
+        
+        // Add timestamp to force refresh
+        const timestamp = new Date().getTime();
+        webcamFeed.attr('src', `{{ url_for('video_feed') }}?t=${timestamp}`);
+    }
+
+    function updateDuration() {
+        if (!startTime) return;
+        
+        const now = new Date();
+        const diff = Math.floor((now - startTime) / 1000);
+        const minutes = Math.floor(diff / 60);
+        const seconds = diff % 60;
+        
+        const formatted = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        $('#duration').text(formatted);
+    }
+
+    function captureFrame() {
+        if (!isDetecting) return;
+        
+        captureCount++;
+        const timestamp = new Date().toLocaleString();
+        
+        // Create a canvas to capture the current frame
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        const img = webcamFeed[0];
+        
+        canvas.width = img.naturalWidth || img.width;
+        canvas.height = img.naturalHeight || img.height;
+        
+        // Draw the current frame
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        
+        // Convert to data URL
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+        
+        // Add to captured frames
+        const frameHtml = `
+            <div class="col-md-6 col-lg-4 mb-3">
+                <div class="card">
+                    <img src="${dataUrl}" class="card-img-top" alt="Captured Frame ${captureCount}">
+                    <div class="card-body p-2">
+                        <small class="text-muted">
+                            <i class="fas fa-clock me-1"></i>
+                            ${timestamp}
+                        </small>
+                        <div class="mt-2">
+                            <a href="${dataUrl}" download="mask_detection_frame_${captureCount}.jpg" 
+                               class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-download me-1"></i>
+                                Download
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        $('#capturedFramesContainer').prepend(frameHtml);
+        capturedFrames.show();
+        
+        // Show success message
+        showToast('Frame captured successfully!', 'success');
+    }
+
+    function showToast(message, type = 'info') {
+        const toastHtml = `
+            <div class="toast align-items-center text-white bg-${type} border-0" role="alert">
+                <div class="d-flex">
+                    <div class="toast-body">
+                        ${message}
+                    </div>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto" 
+                            data-bs-dismiss="toast"></button>
+                </div>
+            </div>
+        `;
+        
+        // Create toast container if it doesn't exist
+        if (!$('#toastContainer').length) {
+            $('body').append('<div id="toastContainer" class="toast-container position-fixed top-0 end-0 p-3"></div>');
+        }
+        
+        const toastElement = $(toastHtml);
+        $('#toastContainer').append(toastElement);
+        
+        const toast = new bootstrap.Toast(toastElement[0]);
+        toast.show();
+        
+        // Remove toast element after it's hidden
+        toastElement.on('hidden.bs.toast', function() {
+            $(this).remove();
+        });
+    }
+
+    // Simulate live statistics (in a real implementation, you would get this from the backend)
+    function updateLiveStats() {
+        if (!isDetecting) return;
+        
+        // Simulate detection counts (replace with real data from backend)
+        const faceCount = Math.floor(Math.random() * 3);
+        const maskCount = Math.floor(Math.random() * 2);
+        const noMaskCount = Math.max(0, faceCount - maskCount);
+        
+        $('#faceCount').text(faceCount);
+        $('#maskCount').text(maskCount);
+        $('#noMaskCount').text(noMaskCount);
+    }
+
+    // Update stats periodically
+    setInterval(updateLiveStats, 2000);
+
+    // Handle webcam feed errors
+    webcamFeed.on('error', function() {
+        if (isDetecting) {
+            statusBadge.removeClass('bg-success')
+                       .addClass('bg-danger')
+                       .html('<i class="fas fa-exclamation-triangle me-1"></i> Error');
+            showToast('Webcam feed error. Please check your camera.', 'danger');
+        }
+    });
+
+    // Keyboard shortcuts
+    $(document).on('keydown', function(e) {
+        if (e.code === 'Space') {
+            e.preventDefault();
+            if (isDetecting) {
+                stopDetection();
+            } else {
+                startDetection();
+            }
+        } else if (e.code === 'KeyC' && isDetecting) {
+            e.preventDefault();
+            captureFrame();
+        }
+    });
+});
+</script>
+{% endblock %}
