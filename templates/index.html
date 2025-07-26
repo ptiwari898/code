@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Face Mask Detection</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+<div class="container mt-5">
+    <h1 class="text-center mb-4">Face Mask Detection System</h1>
+    <form action="/upload" method="post" enctype="multipart/form-data" class="mb-4">
+        <div class="form-group">
+            <label for="file">Upload an image:</label>
+            <input type="file" class="form-control-file" id="file" name="file" accept="image/*" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Detect Mask</button>
+    </form>
+    <div class="text-center mb-4">
+        <a href="/video_feed" class="btn btn-success">Start Webcam Detection</a>
+    </div>
+    <div class="text-center">
+        <a href="/history" class="btn btn-info">View Detection History</a>
+    </div>
+</div>
+</body>
+</html>

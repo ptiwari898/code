@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detection Result</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body>
+<div class="container mt-5">
+    <h1 class="text-center mb-4">Detection Result</h1>
+    <div class="text-center mb-4">
+        <img src="/{{ image_file }}" alt="Result Image" class="img-fluid" style="max-width: 500px;">
+    </div>
+    <div class="alert alert-info text-center" role="alert">
+        {{ result }}
+    </div>
+    <div class="text-center">
+        <a href="/" class="btn btn-primary">Back to Home</a>
+    </div>
+</div>
+</body>
+</html>
