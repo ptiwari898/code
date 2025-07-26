@@ -1,34 +1,108 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Web Developer</title>
-    <meta name="description" content="Best web Developer ">
-    <meta charset="utf-8">
-    <meta name="robots" content="index,follow">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Face Mask Detection System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="icon" href="img/home_icon-icons.com_73532.ico">
-    <meta name="viewport" content="width=device-width, initial-scale=1"> 
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border: none;
+            border-radius: 15px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        .btn-primary {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            border: none;
+            border-radius: 25px;
+            padding: 15px 40px;
+            font-weight: 600;
+            font-size: 1.1em;
+        }
+    </style>
 </head>
 <body>
-    <h1 id="logo">Logo</h1>
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="text-center text-white mb-5">
+                    <h1 class="display-3 fw-bold mb-4">
+                        <i class="fas fa-shield-virus me-3"></i>
+                        Face Mask Detection System
+                    </h1>
+                    <p class="lead fs-4">AI-powered mask detection for public health and safety</p>
+                </div>
 
-    <h2>Article Title </h2>
-        <p class="article-text">Lorem ipsum dolor sit amet consectetur adipisicing elit. 
-         Est eligendi necessitatibus doloremque, at officia, illo 
-         ducimus voluptatum aut facere repellendus blanditiis nisi ad 
-         sed ab in corrupti, consectetur non libero.</p>
-     <h2>Article Title </h2>
-         <p class="article-text">Lorem ipsum dolor sit amet consectetur adipisicing elit. 
-              Est eligendi necessitatibus doloremque, at officia, illo 
-              ducimus voluptatum aut facere repellendus blanditiis nisi ad 
-              sed ab in corrupti, consectetur non libero.</p>
-     <h2>Article Title </h2>
-        <p class="article-text">Lorem ipsum dolor sit amet consectetur adipisicing elit. 
-             Est eligendi necessitatibus doloremque, at officia, illo 
-             ducimus voluptatum aut facere repellendus blanditiis nisi ad 
-            sed ab in corrupti, consectetur non libero.</p>
+                <div class="card">
+                    <div class="card-body p-5 text-center">
+                        <h2 class="card-title mb-4">
+                            <i class="fas fa-rocket me-2"></i>
+                            Get Started
+                        </h2>
+                        
+                        <p class="mb-4">This is a demonstration page. To run the full Face Mask Detection System:</p>
+                        
+                        <div class="row text-start">
+                            <div class="col-md-6">
+                                <h5><i class="fas fa-cog me-2"></i>Setup Instructions:</h5>
+                                <ol>
+                                    <li>Install dependencies: <code>pip install -r requirements.txt</code></li>
+                                    <li>Download models: <code>python train_model.py --action download</code></li>
+                                    <li>Run the app: <code>python app.py</code></li>
+                                    <li>Visit: <code>http://localhost:5000</code></li>
+                                </ol>
+                            </div>
+                            <div class="col-md-6">
+                                <h5><i class="fas fa-star me-2"></i>Features:</h5>
+                                <ul>
+                                    <li>Upload image detection</li>
+                                    <li>Real-time webcam detection</li>
+                                    <li>Multiple face detection</li>
+                                    <li>Detection history & export</li>
+                                    <li>Beautiful responsive UI</li>
+                                </ul>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4">
+                            <a href="#" class="btn btn-primary btn-lg me-3" onclick="startApp()">
+                                <i class="fas fa-play me-2"></i>
+                                Launch Application
+                            </a>
+                            <a href="demo.py" class="btn btn-outline-primary btn-lg" download>
+                                <i class="fas fa-download me-2"></i>
+                                Download Demo
+                            </a>
+                        </div>
+                        
+                        <div class="alert alert-info mt-4">
+                            <i class="fas fa-info-circle me-2"></i>
+                            <strong>Note:</strong> This static page is just a preview. Run the Flask app for the full experience!
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="text-center text-white mt-4">
+                    <p>Made with ❤️ for public health and safety</p>
+                </div>
+            </div>
+        </div>
+    </div>
 
-
-
-
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function startApp() {
+            alert('To start the full application:\n\n1. Run: python app.py\n2. Open: http://localhost:5000\n\nSee README.md for complete setup instructions.');
+        }
+    </script>
 </body>
 </html>
